@@ -25,26 +25,29 @@ app.get('/messages', (req, res) =>{
 })
 
 app.post('/messages', async (req, res) => {
-    var message = new Message(req.body)
+    try {
+        var message = new Message(req.body)
 
-    var savedMessage = await message.save()
-
-    console.log('saved')
+        var savedMessage = await message.save()
     
-    var censored = await Message.findOne({message: 'badword'})
-
-    if(censored) {
-        console.log('censored words found', censored)
-        await Message.deleteOne({_id: censored.id})
-    } else{
-        io.emit('message', req.body)
+        console.log('saved')
+        
+        var censored = await Message.findOne({message: 'badword'})
+    
+        if(censored) {
+            console.log('censored words found', censored)
+            await Message.deleteOne({_id: censored.id})
+        } else{
+            io.emit('message', req.body)
+        }
+    
+        res.sendStatus(200)
+    } catch (error) {
+        res.sendStatus(500)
+        return console.error(error)
+    } finally {
+        console.log('message post called')
     }
-
-    res.sendStatus(200)
-    // .catch((err) => {
-    //     res.sendStatus(500)
-    //     return console.error(err)
-    // })
 
 })
 
